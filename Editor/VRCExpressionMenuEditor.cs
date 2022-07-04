@@ -15,7 +15,21 @@ public class VRCExpressionsMenuEditor : Editor
 {
     static string[] ToggleStyles = { "Pip-Slot", "Animation" };
 
-    const string reColor = "<color=(#([A-Z]|[0-9]){6})>";
+    static string[] colorNames = new string[] {
+        "black", "blue", "green", "lightblue", "grey", "orange",
+        "purple", "red", "white", "yellow"
+    };
+
+    static readonly Dictionary<string, string> colorLookUp = new Dictionary<string, string>()
+    {
+        { "black", "#000000"}, { "blue", "#0000FF"}, {"green", "#00FF00"}, 
+        { "lightblue", "#C6ECEE"}, {"grey", "#CECECE"}, {"orange", "#FF992C"}, 
+        { "purple", "#8B00FF"}, { "red", "#FF0000"}, { "white", "#FFFFFF"}, 
+        { "yellow", "#FFFF00" }
+    };
+
+    const string reColor = "<color=\"(\\w*)\">";
+    const string reHexColor = "<color=(#([A-Z]|[0-9]){6})>";
     //const string reSize = "<size=((\\d)*.(\\d)*)>";
     //const float DEFAULT_TEXT_SIZE = 22.5f;
 
@@ -87,11 +101,20 @@ public class VRCExpressionsMenuEditor : Editor
 
         // decorator linting
         #region Edited By Cam
-        var color = Regex.Match(name.stringValue, reColor);
+        var rawColor = Regex.Match(name.stringValue, reColor);
+        if(rawColor.Success) {
+            string color = rawColor.Groups[1].Value;
+            string replaceWith = colorLookUp.ContainsKey(color)
+                ? colorLookUp[color]
+                : "#FFFFFF";
+            name.stringValue = name.stringValue.Replace(rawColor.Value, $"<color={replaceWith}>");
+        }
+
+        var hexColor = Regex.Match(name.stringValue, reHexColor);
         bool bold = Regex.Match(name.stringValue, "<b>").Success;
         bool italics = Regex.Match(name.stringValue, "<i>").Success;
 
-        if (!color.Success) {
+        if (!hexColor.Success) {
             name.stringValue = $"<color=#FFFFFF>{name.stringValue}";
             return;
         }
@@ -103,7 +126,7 @@ public class VRCExpressionsMenuEditor : Editor
         //}
 
         string friendlyName = name.stringValue
-            .Replace(color.Value, "")
+            .Replace(hexColor.Value, "")
             //.Replace(size.Value, "")
             .Replace("<b>", "")
             .Replace("<i>", "");
@@ -158,7 +181,7 @@ public class VRCExpressionsMenuEditor : Editor
                 {
                     // color
                     Color curColor = Color.white;
-                    string colorName = color.Groups[1].Value;
+                    string colorName = hexColor.Groups[1].Value;
                     ColorUtility.TryParseHtmlString(colorName, out curColor);
                     curColor = EditorGUILayout.ColorField("Text Color", curColor);
                     colorName = ColorUtility.ToHtmlStringRGB(curColor);
