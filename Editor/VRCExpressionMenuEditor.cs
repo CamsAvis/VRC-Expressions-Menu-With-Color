@@ -15,29 +15,13 @@ public class VRCExpressionsMenuEditor : Editor
 {
     static string[] ToggleStyles = { "Pip-Slot", "Animation" };
 
-    // Cam's Color Extension
-    static string[] colorNames = new string[] {
-        "black", "blue", "green", "lightblue", "grey", "orange",
-        "purple", "red", "white", "yellow"
-    };
-    static string[] colorNamesFriendly = new string[] {
-        "Black", "Blue", "Green", "Light Blue", "Gray", "Orange",
-        "Purple", "Red", "White", "Yellow"
-    };
-    Dictionary<string, Texture2D> colorDict;
-    const string re = "<color=\"([\\w]*)\">";
+    const string reColor = "<color=(#([A-Z]|[0-9]){6})>";
+    //const string reSize = "<size=((\\d)*.(\\d)*)>";
+    //const float DEFAULT_TEXT_SIZE = 22.5f;
 
 
     List<UnityEngine.Object> foldoutList = new List<UnityEngine.Object>();
 
-    public void OnEnable()
-    {
-        colorDict = new Dictionary<string, Texture2D>();
-        foreach (string colorName in colorNames)
-        {
-            colorDict.Add(colorName, Resources.Load<Texture2D>($"Backgrounds/{colorName}"));
-        }
-    }
 
     public void Start()
     {
@@ -100,15 +84,30 @@ public class VRCExpressionsMenuEditor : Editor
         var subParameters = control.FindPropertyRelative("subParameters");
         var labels = control.FindPropertyRelative("labels");
 
+
+        // decorator linting
         #region Edited By Cam
-        var color = Regex.Match(name.stringValue, re);
-        if (!color.Success)
-        {
-            name.stringValue = $"<color=\"white\">{name.stringValue}";
+        var color = Regex.Match(name.stringValue, reColor);
+        bool bold = Regex.Match(name.stringValue, "<b>").Success;
+        bool italics = Regex.Match(name.stringValue, "<i>").Success;
+
+        if (!color.Success) {
+            name.stringValue = $"<color=#FFFFFF>{name.stringValue}";
             return;
         }
-        string colorName = color.Groups[1].Value;
-        string friendlyName = name.stringValue.Replace(color.Value, "");
+
+        //var size = Regex.Match(name.stringValue, reSize);
+        //if(!size.Success) {
+        //    name.stringValue = $"<size={DEFAULT_TEXT_SIZE}>{name.stringValue}";
+        //    return;
+        //}
+
+        string friendlyName = name.stringValue
+            .Replace(color.Value, "")
+            //.Replace(size.Value, "")
+            .Replace("<b>", "")
+            .Replace("<i>", "");
+        
 
         //Foldout
         EditorGUI.BeginChangeCheck();
@@ -127,12 +126,18 @@ public class VRCExpressionsMenuEditor : Editor
             if (GUILayout.Button("Up", GUILayout.Width(64)))
             {
                 if (index > 0)
+                {
                     controls.MoveArrayElement(index, index - 1);
+                    return;
+                }
             }
             if (GUILayout.Button("Down", GUILayout.Width(64)))
             {
                 if (index < controls.arraySize - 1)
+                {
                     controls.MoveArrayElement(index, index + 1);
+                    return;
+                }
             }
             if (GUILayout.Button("Delete", GUILayout.Width(64)))
             {
@@ -145,24 +150,37 @@ public class VRCExpressionsMenuEditor : Editor
             EditorGUI.indentLevel += 1;
             {
                 #region Edited By Cam
-                // Name
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+
                 friendlyName = EditorGUILayout.TextField("Name", friendlyName);
-                int choice = IndexOf(colorNames, colorName);
-                choice = EditorGUILayout.Popup("Color", choice, colorNamesFriendly);
-                colorName = colorNames[choice];
-                name.stringValue = $"<color=\"{colorName}\">{friendlyName}";
-
-                // draw colored background
-                Texture2D bgTex = EditorGUIUtility.whiteTexture;
-                if (colorDict.ContainsKey(colorName))
-                {
-                    bgTex = colorDict[colorName];
-                }
-                Rect curViewRect = EditorGUILayout.GetControlRect(false, 5);
-                EditorGUI.DrawTextureTransparent(curViewRect, bgTex);
-                #endregion Edited By Cam
-
                 GUILayout.Space(5);
+                EditorGUI.indentLevel += 2;
+                {
+                    // color
+                    Color curColor = Color.white;
+                    string colorName = color.Groups[1].Value;
+                    ColorUtility.TryParseHtmlString(colorName, out curColor);
+                    curColor = EditorGUILayout.ColorField("Text Color", curColor);
+                    colorName = ColorUtility.ToHtmlStringRGB(curColor);
+
+                    // size
+                    //float fSize = float.Parse(size.Groups[1].Value, System.Globalization.NumberStyles.Float);
+                    //fSize = EditorGUILayout.DelayedFloatField("Text Size", fSize);
+                    //friendlyName.Replace(size.Groups[1].Value, fSize.ToString());
+
+                    // decorators
+                    bold = EditorGUILayout.Toggle("Bold?", bold);
+                    italics = EditorGUILayout.Toggle("Italics?", italics);
+                    string decorators = string.Empty + (bold ? "<b>" : "") + (italics ? "<i>" : "");
+
+                    //name.stringValue.Replace(size.Groups[1].Value, fSize.ToString());
+                    name.stringValue = $"{decorators}<color=#{colorName}>{friendlyName}";
+                    GUILayout.Space(5);
+                }
+                EditorGUI.indentLevel -= 2;
+
+                EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+                #endregion Edited By Cam
 
                 EditorGUILayout.PropertyField(icon);
                 EditorGUILayout.PropertyField(type);
@@ -262,29 +280,6 @@ public class VRCExpressionsMenuEditor : Editor
             EditorGUI.indentLevel -= 1;
         }
         GUILayout.EndVertical();
-
-        string NextColor(string n)
-        {
-            for (int i = 0; i < colorNames.Length; i++)
-            {
-                if (colorNames[i].Equals(n))
-                {
-                    return i == colorNames.Length - 1 ? colorNames[0] : colorNames[i + 1];
-                }
-            }
-            return n;
-        }
-
-        int IndexOf(string[] arr, string val)
-        {
-            for (int i = 0; i < arr.Length; i++)
-            {
-                if (arr[i].Equals(val))
-                    return i;
-            }
-
-            return 0;
-        }
     }
 
     void DrawLabel(SerializedProperty subControl, string name)
