@@ -32,16 +32,10 @@ public class VRCExpressionsMenuEditor : Editor
 
     public void OnEnable()
     {
-        colorDict = new Dictionary<string, Texture2D>()
+        colorDict = new Dictionary<string, Texture2D>();
+        foreach (string colorName in colorNames)
         {
-            { "black", ToTex("black") }, { "blue", ToTex("blue") },{ "green", ToTex("green") },{ "lightblue", ToTex("lightblue") },
-            { "grey", ToTex("grey") }, { "orange", ToTex("orange") },{ "purple", ToTex("purple") },{ "red", ToTex("red") },
-            { "white", ToTex("white") }, { "yellow", ToTex("yellow") }
-        };
-
-        Texture2D ToTex(string colorName)
-        {
-            return Resources.Load<Texture2D>($"Backgrounds/{colorName}");
+            colorDict.Add(colorName, Resources.Load<Texture2D>($"Backgrounds/{colorName}"));
         }
     }
 
