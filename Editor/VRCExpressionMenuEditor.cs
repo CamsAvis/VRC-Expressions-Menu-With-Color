@@ -183,7 +183,7 @@ public class VRCExpressionsMenuEditor : Editor
                     Color curColor = Color.white;
                     string colorName = hexColor.Groups[1].Value;
                     ColorUtility.TryParseHtmlString(colorName, out curColor);
-                    curColor = EditorGUILayout.ColorField("Text Color", curColor);
+                    curColor = EditorGUILayout.ColorField(new GUIContent("Text Color"), curColor, true, false, false);
                     colorName = ColorUtility.ToHtmlStringRGB(curColor);
 
                     // size
