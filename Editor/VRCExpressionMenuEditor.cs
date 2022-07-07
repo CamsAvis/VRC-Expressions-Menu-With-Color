@@ -199,64 +199,66 @@ public class VRCExpressionsMenuEditor : Editor
                 #endregion Edited By Cam
 
                 EditorGUILayout.BeginHorizontal();
-
-                using (new EditorGUILayout.VerticalScope())
                 {
-
-                    EditorGUILayout.PropertyField(type);
-
-                    //Type Info
-                    switch (controlType)
+                    using (new EditorGUILayout.VerticalScope())
                     {
-                        case ExpressionControl.ControlType.Button:
-                            EditorGUILayout.HelpBox("Click or hold to activate. The button remains active for a minimum 0.2s.\nWhile active the (Parameter) is set to (Value).\nWhen inactive the (Parameter) is reset to zero.", MessageType.Info);
-                            break;
-                        case ExpressionControl.ControlType.Toggle:
-                            EditorGUILayout.HelpBox("Click to toggle on or off.\nWhen turned on the (Parameter) is set to (Value).\nWhen turned off the (Parameter) is reset to zero.", MessageType.Info);
-                            break;
-                        case ExpressionControl.ControlType.SubMenu:
-                            EditorGUILayout.HelpBox("Opens another expression menu.\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
-                            break;
-                        case ExpressionControl.ControlType.TwoAxisPuppet:
-                            EditorGUILayout.HelpBox("Puppet menu that maps the joystick to two parameters (-1 to +1).\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
-                            break;
-                        case ExpressionControl.ControlType.FourAxisPuppet:
-                            EditorGUILayout.HelpBox("Puppet menu that maps the joystick to four parameters (0 to 1).\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
-                            break;
-                        case ExpressionControl.ControlType.RadialPuppet:
-                            EditorGUILayout.HelpBox("Puppet menu that sets a value based on joystick rotation. (0 to 1)\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
-                            break;
+                        GUILayout.Space(10);
+                        EditorGUILayout.PropertyField(type);
+
+                        //Type Info
+                        switch (controlType)
+                        {
+                            case ExpressionControl.ControlType.Button:
+                                EditorGUILayout.HelpBox("Click or hold to activate. The button remains active for a minimum 0.2s.\nWhile active the (Parameter) is set to (Value).\nWhen inactive the (Parameter) is reset to zero.", MessageType.Info);
+                                break;
+                            case ExpressionControl.ControlType.Toggle:
+                                EditorGUILayout.HelpBox("Click to toggle on or off.\nWhen turned on the (Parameter) is set to (Value).\nWhen turned off the (Parameter) is reset to zero.", MessageType.Info);
+                                break;
+                            case ExpressionControl.ControlType.SubMenu:
+                                EditorGUILayout.HelpBox("Opens another expression menu.\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
+                                break;
+                            case ExpressionControl.ControlType.TwoAxisPuppet:
+                                EditorGUILayout.HelpBox("Puppet menu that maps the joystick to two parameters (-1 to +1).\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
+                                break;
+                            case ExpressionControl.ControlType.FourAxisPuppet:
+                                EditorGUILayout.HelpBox("Puppet menu that maps the joystick to four parameters (0 to 1).\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
+                                break;
+                            case ExpressionControl.ControlType.RadialPuppet:
+                                EditorGUILayout.HelpBox("Puppet menu that sets a value based on joystick rotation. (0 to 1)\nWhen opened the (Parameter) is set to (Value).\nWhen closed (Parameter) is reset to zero.", MessageType.Info);
+                                break;
+                        }
                     }
 
-                    //Param
-                    switch (controlType)
-                    {
-                        case ExpressionControl.ControlType.Button:
-                        case ExpressionControl.ControlType.Toggle:
-                        case ExpressionControl.ControlType.SubMenu:
-                        case ExpressionControl.ControlType.TwoAxisPuppet:
-                        case ExpressionControl.ControlType.FourAxisPuppet:
-                        case ExpressionControl.ControlType.RadialPuppet:
-                            DrawParameterDropDown(parameter, "Parameter");
-                            DrawParameterValue(parameter, value);
-                            break;
-                    }
+                    // icon
+                    Texture2D iconImage = (Texture2D)icon.objectReferenceValue;
+                    iconImage = (Texture2D)EditorGUILayout.ObjectField(
+                        iconImage,
+                        typeof(Texture2D),
+                        false,
+                        GUILayout.Width(120),
+                        GUILayout.Height(90)
+                    );
+                    icon.objectReferenceValue = iconImage;
+
+                    GUILayout.Space(10);
                 }
-
-                // icon
-                Texture2D iconImage = (Texture2D)icon.objectReferenceValue;
-                iconImage = (Texture2D)EditorGUILayout.ObjectField(
-                    iconImage,
-                    typeof(Texture2D),
-                    false,
-                    GUILayout.Width(120),
-                    GUILayout.Height(90)
-                );
-                icon.objectReferenceValue = iconImage;
-
-                GUILayout.Space(10);
                 EditorGUILayout.EndHorizontal();
 
+                GUILayout.Space(10);
+                //Param
+                switch (controlType)
+                {
+                    case ExpressionControl.ControlType.Button:
+                    case ExpressionControl.ControlType.Toggle:
+                    case ExpressionControl.ControlType.SubMenu:
+                    case ExpressionControl.ControlType.TwoAxisPuppet:
+                    case ExpressionControl.ControlType.FourAxisPuppet:
+                    case ExpressionControl.ControlType.RadialPuppet:
+                        DrawParameterDropDown(parameter, "Parameter");
+                        DrawParameterValue(parameter, value);
+                        break;
+                }
+                
                 EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
 
                 //Style
@@ -277,7 +279,7 @@ public class VRCExpressionsMenuEditor : Editor
                     case ExpressionControl.ControlType.TwoAxisPuppet:
                         subParameters.arraySize = 2;
                         labels.arraySize = 4;
-
+                            
                         DrawParameterDropDown(subParameters.GetArrayElementAtIndex(0), "Parameter Horizontal", false);
                         DrawParameterDropDown(subParameters.GetArrayElementAtIndex(1), "Parameter Vertical", false);
 
@@ -449,7 +451,14 @@ public class VRCExpressionsMenuEditor : Editor
 
                 //Dropdown
                 EditorGUI.BeginChangeCheck();
-                currentIndex = EditorGUILayout.Popup(name, currentIndex + 1, parameterNames);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    // only variable width for "Parameter Rotation" //
+                    float width = name.Equals("Parameter") ? 90 : 150;
+                    EditorGUILayout.LabelField(name, GUILayout.Width(width));
+                    currentIndex = EditorGUILayout.Popup(/*name, */currentIndex + 1, parameterNames);
+                }
+
                 if (EditorGUI.EndChangeCheck())
                 {
                     if (currentIndex == 0)
